@@ -1,0 +1,41 @@
+{
+  "name": "02-chatbot-de-negocio-openai",
+  "version": "1.0.0",
+  "description": "Proyecto de ChatBot conversacional de negocio utilizando JavaScript, Express y el API de OpenAI",
+  "main": "app.js",
+  "type": "module",
+  "scripts": {
+    "start": "nodemon app.js",
+    "serve": "node app.js",
+    "build": "gulp build",
+    "start:prod": "node dist/app.js",
+    "clean": "kill-port 3001",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "chatbot",
+    "negocio",
+    "openai",
+    "javascript",
+    "nodejs",
+    "express"
+  ],
+  "author": "AntonyDev",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "1.8.1",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "openai": "^6.16.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "del": "^8.0.1",
+    "gulp": "^5.0.1",
+    "gulp-clean-css": "^4.3.0",
+    "gulp-htmlmin": "^5.0.1",
+    "gulp-plumber": "^1.2.1",
+    "gulp-terser": "^2.1.0",
+    "nodemon": "^3.1.11"
+  }
+}
