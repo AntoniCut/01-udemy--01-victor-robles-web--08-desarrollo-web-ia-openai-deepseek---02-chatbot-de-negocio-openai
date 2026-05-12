@@ -49,7 +49,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 /** -----  `Ruta base del proyecto`  ----- */
-const base = '/02-chatbot-de-negocio-openai';
+const base = '/victor-robles-web/08-desarrollo-web-ia-openai-deepseek-javascript-nodejs/02-chatbot-de-negocio-openai';
 
 
 /** -----  `Inicialización del cliente de OpenAI`  ----- */
