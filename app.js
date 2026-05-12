@@ -111,13 +111,25 @@ const buildBusinessContext = () => {
 
 
 
+/**  
+ * -----------------------------
+ * -----  `conversations`  -----
+ * -----------------------------
+ * -----  `Almacena las conversaciones de los usuarios`  ----- 
+ * @type {Record<number, Array<{ role: 'user' | 'assistant', content: string }>>} 
+ */
+
+let conversations = {};
+
+
+
 /**
  * ------------------------------------------
  * -----  `getMessageFromRequest(req)`  -----
  * ------------------------------------------
  * - `Obtiene y normaliza el mensaje del usuario`
  * @param {express.Request} req - La solicitud HTTP de Express que contiene el mensaje del usuario en el cuerpo
- * @returns {string} - El mensaje del usuario normalizado
+ * @returns {ChatbotRequestBody} - El mensaje del usuario normalizado
  */
 
 const getMessageFromRequest = (req) => {
@@ -125,8 +137,17 @@ const getMessageFromRequest = (req) => {
     /** @type {ChatbotRequestBody} - `Cuerpo de la solicitud del chatbot` */
     const body = req.body;
 
+    
     //  -----  Retorna el mensaje del usuario normalizado o una cadena vacía si no es válido  -----
-    return body?.message?.trim() || '';
+    //return body?.message?.trim() || '';
+
+    /** @type {ChatbotRequestBody} */
+    const message = {
+        message: body?.message?.trim() || '',
+        userId: body?.userId
+    }
+
+    return message;
 
 }
 
@@ -168,12 +189,12 @@ const validateMessage = (message, res) => {
  * - `Genera una respuesta del chatbot usando el modelo de OpenAI`
  * -  Ejecuta la llamada al modelo (placeholder modular).
  * @param {string} context - El contexto de negocio para el modelo
- * @param {string} userMessage - El mensaje del usuario para el chatbot
+ * @param {{ role: 'user' | 'assistant', content: string }[]} history - El historial de mensajes del usuario para mantener el contexto de la conversación
  * @returns {Promise<string>} - La respuesta generada por el chatbot
  * @throws {Error} - Si ocurre un error durante la generación de la respuesta
  */
 
-const generateChatbotReply = async (context, userMessage) => {
+const generateChatbotReply = async (context, history) => {
 
     /** -----  `respuesta del modelo openai`  ----- */
     const response = await openai.chat.completions.create({
@@ -185,14 +206,11 @@ const generateChatbotReply = async (context, userMessage) => {
         messages: [
 
             {
-                role: 'user',
+                role: 'system',
                 content: `${context}\nResponde de forma corta y directa, usando los minimos tokens posibles.`
             },
 
-            {
-                role: 'user',
-                content: userMessage
-            }
+            ...history
         ],
 
         //  -----  `Limite de tokens para la respuesta del chatbot`  -----
@@ -256,19 +274,33 @@ const handleChatbotRequest = async (req, res) => {
     /** -----`contexto de negocio` */
     const context = buildBusinessContext();
 
-    /** -----`mensaje del usuario` */
-    const message = getMessageFromRequest(req);
+    /** -----`datos del request` */
+    const { message, userId } = getMessageFromRequest(req);
 
+    
     //  -----  Validacion del mensaje del usuario  -----
     if (!validateMessage(message, res))
         return;
+
+
+    //  -----  Inicializar historial del usuario si no existe  -----
+    if (!conversations[userId])
+        conversations[userId] = [];
+
+    //  -----  Agregar mensaje del usuario al historial  -----
+    conversations[userId].push({ role: 'user', content: message });
 
 
     //  -----  Generacion de la respuesta del chatbot y manejo de errores  -----
     try {
 
         /**  -----  `respuesta del chatbot`  ----- */
-        const reply = await generateChatbotReply(context, message);
+        const reply = await generateChatbotReply(context, conversations[userId]);
+
+        //  -----  Guardar respuesta del chatbot en el historial  -----
+        conversations[userId].push({ role: 'assistant', content: reply });
+
+        
 
         //  -----  Responde con la respuesta generada por el chatbot  -----
         res.json({
@@ -291,7 +323,7 @@ const handleChatbotRequest = async (req, res) => {
 //*  -----  Endpoint POST /api/chatbot que maneja la solicitud del chatbot usando la funcion handleChatbotRequest  -----
 app.post(`${base}/api/chatbot`, handleChatbotRequest);
 
-
+console.log('Historial de conversación del usuario => ', conversations);
 
 
 /*

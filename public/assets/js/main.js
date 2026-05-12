@@ -24,6 +24,12 @@
     const $inputText = document.querySelector('#inputText');
 
 
+    //  -----  Variables para manejar la conversación  -----
+
+    /** @type {number} - `Identificador del usuario para esta sesión` */
+    const userId = Date.now() + Math.floor(777 + Math.random() * 7000); // Usar timestamp como ID de usuario único para esta sesión
+
+
 
     /**
      * ----------------------------
@@ -97,7 +103,8 @@
 
         /** @type {ChatbotRequestBody} */
         const userMessage = {
-            message: text
+            message: text,
+            userId
         };
 
         return userMessage;
@@ -134,7 +141,8 @@
 
             //  -----  Cuerpo de la solicitud con el mensaje del usuario  -----
             body: JSON.stringify({
-                message
+                message,
+                userId
             })
 
         });

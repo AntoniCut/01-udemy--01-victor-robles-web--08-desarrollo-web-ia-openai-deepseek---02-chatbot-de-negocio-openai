@@ -40,7 +40,10 @@ declare global {
     type ChatbotRequestBody = {
         
         /** -----  Mensaje del usuario para el chatbot  ----- */
-        message: string
+        message: string;
+
+        /** -----  Identificador del usuario que envía el mensaje  ----- */
+        userId: number;
     }
 
 
