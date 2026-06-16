@@ -280,6 +280,16 @@ body {
 }
 
 
+/*  -----  Estado "Escribiendo..." del bot  -----  */
+
+.chat__message--typing {
+    min-width: 25rem;
+    width: max-content;
+    font-style: italic;
+    opacity: 0.75;
+}
+
+
 /*  -----  chat inputs y botones  -----  */
 
 .chat__input-group {

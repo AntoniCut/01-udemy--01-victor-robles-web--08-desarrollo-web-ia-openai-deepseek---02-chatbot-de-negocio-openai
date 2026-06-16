@@ -173,16 +173,24 @@
      * -----  `appendBotMessage()`  ------
      * -----------------------------------
      * - Crea y agrega el mensaje de la IA al contenedor del chat.
+     * - Si se indica `isTyping`, marca el mensaje como "Escribiendo..." con su clase específica.
+     * - Devuelve la referencia al elemento creado para poder actualizarlo después (p. ej. reemplazar "Escribiendo..." por la respuesta final).
      * @param {string} message - `respuesta textual del chatbot`
+     * @param {boolean} [isTyping=false] - `true` para aplicar el estilo del estado "Escribiendo..."`
+     * @returns {HTMLDivElement | undefined} - `elemento del mensaje del bot añadido al chat`
      */
 
-    const appendBotMessage = (message) => {
+    const appendBotMessage = (message, isTyping = false) => {
 
         /** @type {HTMLDivElement} - `crear mensaje de la IA` */
         const $botMessage = document.createElement('div');
 
         //  -----  Agregar clases CSS para el mensaje del chatbot  -----
         $botMessage.classList.add('chat__message', 'chat__message--bot');
+
+        //  -----  Si es el estado "Escribiendo...", añadimos su clase específica  -----
+        if (isTyping)
+            $botMessage.classList.add('chat__message--typing');
 
         //  -----  Establecer el contenido del mensaje del chatbot  -----
         $botMessage.textContent = `Carmen: ${message}`;
@@ -194,6 +202,8 @@
         //  -----  Desplazar el contenedor de mensajes del chat  -----
         //  -----  hacia abajopara mostrar el nuevo mensaje      -----
         scrollChat();
+
+        return $botMessage;
 
     };
 
@@ -221,10 +231,46 @@
         //  -----  Enviar el mensaje al servidor y manejar la respuesta del chatbot  -----
         try {
 
+            /** @type {HTMLDivElement | undefined} - `elemento temporal con el texto "Escribiendo..." que se reemplazará al recibir la respuesta` */
+            const $typingMessage = appendBotMessage('Escribiendo.', true);
+
+            /** @type {number} - `contador de puntos para la animación de "Escribiendo..."` */
+            let dots = 1;
+
+            /** @type {ReturnType<typeof setInterval> | undefined} - `intervalo que actualiza los puntos del mensaje "Escribiendo..."` */
+            const typingInterval = setInterval(() => {
+
+                //  -----  Ciclar entre 1, 2 y 3 puntos  -----
+                dots = (dots % 3) + 1;
+
+                //  -----  Actualizar el texto del mensaje "Escribiendo..." con los puntos correspondientes  -----
+                if ($typingMessage)
+                    $typingMessage.textContent = `Carmen: Escribiendo${'.'.repeat(dots)}`;
+
+            }, 500);
+
+
             //  -----  Validar que la respuesta del chatbot contenga un mensaje válido  -----
             const botMessage = await fetchChatbotMessage(userMessage.message);
 
-            appendBotMessage(botMessage);
+
+            //  -----  Detenemos la animación de "Escribiendo..."  -----
+            clearInterval(typingInterval);
+
+
+            //  -----  Reemplazamos el contenido del mensaje "Escribiendo..." por la respuesta real del bot  -----
+            //  -----  y quitamos la clase de "Escribiendo..."                       -----
+            if ($typingMessage) {
+
+                $typingMessage.textContent = `Carmen: ${botMessage}`;
+                $typingMessage.classList.remove('chat__message--typing');
+
+            } else
+                appendBotMessage(botMessage);
+
+
+            //  -----  Desplazar el contenedor de mensajes del chat hacia abajo para mostrar la nueva respuesta  -----
+            scrollChat();
 
         }
 
